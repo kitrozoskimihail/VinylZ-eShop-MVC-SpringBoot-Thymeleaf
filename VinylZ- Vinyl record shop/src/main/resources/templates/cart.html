@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center all content horizontally */
+        }
+
+        #nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #343a40;
+            padding: 15px 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        #nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 15px;
+        }
+
+        #nav a:hover {
+            background-color: #323933;
+            border-radius: 5px;
+        }
+
+        .cart-container {
+            width: 100%;
+            max-width: 800px; /* Set the maximum width for the content */
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top: 70px; /* Add space to the top so it's not hidden behind the navbar */
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .cart-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        a {
+            display: inline-block;
+            text-align: center;
+            text-decoration: none;
+            color: #323933;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<nav id="nav">
+    <a href="/">Home</a>
+    <a href="/vinyls/add" class="add-item" sec:authorize="hasAuthority('ADMIN')">Add New Vinyl</a>
+    <a href="/authors" sec:authorize="hasAuthority('ADMIN')">Manage Authors</a>
+    <a href="/cart" sec:authorize="hasAuthority('USER')">Cart</a>
+    <a href="/login" sec:authorize="!isAuthenticated()">Login</a>
+    <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" style="display:inline;">
+        <button type="submit" style="background:none; border:none; color:white; font-size:18px; cursor:pointer;">Logout</button>
+    </form>
+</nav>
+
+<div class="cart-container">
+    <h2>Your Cart</h2>
+    <div th:each="vinyl : ${orders}" class="cart-item">
+        <img th:src="${vinyl.imageUrl}" alt="Vinyl Image">
+        <span th:text="${vinyl.vinylName}"></span>
+        <span th:text="${vinyl.price}"></span>
+        <form th:action="@{'/cart/remove/' + ${vinyl.id}}" method="post">
+            <button type="submit" class="btn" style="background-color: red; color: white;">Remove</button>
+        </form>
+    </div>
+    <a href="/">Back to Home</a>
+</div>
+<form th:action="@{/cart/buy}" method="post">
+    <button type="submit" class="btn" style="background-color: green; color: white; margin-top: 15px;">
+        Buy
+    </button>
+</form>
+
+</body>
+</html>

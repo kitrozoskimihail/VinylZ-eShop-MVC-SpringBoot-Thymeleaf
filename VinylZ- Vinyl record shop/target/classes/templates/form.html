@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vinyl Records</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        #nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background-color: #343a40;
+            padding: 15px 0;
+        }
+
+        #nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px 15px;
+        }
+
+        #nav a:hover {
+            background-color: #495057;
+            border-radius: 5px;
+        }
+
+        .container {
+            width: 90%;
+            margin: 20px auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            width: 250px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            padding: 15px;
+        }
+
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .product-card h3 {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .product-card p {
+            font-size: 14px;
+            color: #065555;
+        }
+
+        .product-card .price {
+            font-size: 16px;
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            width: 50%;
+            margin: 30px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        form div {
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], input[type="date"], select {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        select[multiple] {
+            height: 150px;
+        }
+
+        a {
+            display: inline-block;
+            text-align: center;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #323933;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+
+
+        @media (max-width: 768px) {
+            form {
+                width: 90%;
+            }
+
+            #nav li {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<nav id="nav">
+    <a href="/">Home</a>
+    <a href="/vinyls/add" class="add-item" sec:authorize="hasAuthority('ADMIN')">Add New Vinyl</a>
+    <a href="/authors" sec:authorize="hasAuthority('ADMIN')">Manage Authors</a>
+    <a href="/cart" sec:authorize="hasAuthority('USER')">Cart</a>
+    <a href="/login" sec:authorize="!isAuthenticated()">Login</a>
+    <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" style="display:inline;">
+        <button type="submit" style="background:none; border:none; color:white; font-size:18px; cursor:pointer;">Logout</button>
+    </form>
+</nav>
+
+<form th:method="POST" th:action="${vinyl != null} ? @{/vinyls/{id}(id=${vinyl.id})} : @{/vinyls}" enctype="multipart/form-data">
+    <div>
+        <label for="vinylName">Name</label>
+        <input type="text"
+               id="vinylName"
+               name="vinylName"
+               th:value="${vinyl?.vinylName}"
+               required>
+    </div>
+    <div>
+        <label for="price">Price</label>
+        <input type="text"
+               id="price"
+               name="price"
+               th:value="${vinyl?.price}"
+               required>
+    </div>
+    <div>
+        <label for="releaseDate">Release Date</label>
+        <input type="date"
+               id="releaseDate"
+               name="releaseDate"
+               th:value="${#dates.format(vinyl?.releaseDate, 'yyyy-MM-dd')}"
+               required>
+    </div>
+    <div>
+        <label for="genre">Genre</label>
+        <select id="genre" name="genre" required>
+            <option value="">Select Genre</option>
+            <option th:each="genre : ${genres}"
+                    th:value="${genre}"
+                    th:text="${genre}"
+                    th:selected="${vinyl?.genre == genre}"></option>
+        </select>
+    </div>
+    <div>
+        <label>Authors</label><br/>
+        <select id="authors" name="authorIDs" multiple="multiple" size="5">
+            <option
+                    th:each="author: ${authors}"
+                    th:value="${author.id}"
+                    th:text="${author.firstName + ' ' + author.lastName}"
+                    th:selected="${vinyl?.authorIds?.contains(author.id)}">
+            </option>
+        </select>
+    </div>
+    <div>
+        <label for="stock">Stock</label>
+        <input type="number"
+               id="stock"
+               name="stock"
+               th:value="${vinyl?.stock}"
+               required>
+    </div>
+    <div>
+        <label for="imageFile">Upload Image</label>
+        <input type="file"
+               id="imageFile"
+               name="imageFile"
+               accept="image/*"
+               onchange="previewImage(event)">
+    </div>
+
+    <div>
+        <label>Preview</label><br>
+        <img id="imagePreview"
+             th:src="${vinyl?.imageUrl}"
+             alt="Vinyl Image"
+             style="width: 200px; height: auto; display: block; margin-top: 10px;">
+    </div>
+
+    <input type="hidden" id="imageUrl" name="imageUrl" th:value="${vinyl?.imageUrl}">
+
+    <script>
+        function previewImage(event) {
+            let reader = new FileReader();
+            reader.onload = function(){
+                let output = document.getElementById('imagePreview');
+                output.src = reader.result;
+                document.getElementById('imageUrl').value = reader.result;
+            };
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+
+    <button id="submit" type="submit">Submit</button>
+    <a id="back" href="/vinyls" type="button">Back to Vinyls</a>
+</form>
+</body>
+</html>
